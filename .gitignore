@@ -1,0 +1,23 @@
+# Node.js
+node_modules/
+
+# Build files
+dist/
+build/
+*.log
+
+# Environment variables
+.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# Dependency directories
+bower_components/
+jspm_packages/
