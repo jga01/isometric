@@ -4,6 +4,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { Entity } from './entity';
 
+import { TextTexture } from './text';
+
 export class Player extends Entity {
     velocity;
     targetTile;
@@ -33,9 +35,8 @@ export class Player extends Entity {
                     this.actions[animation.name.split('|')[1]] = action;
                 });
 
-                this.actions['Idle'].play();
-
                 this.currentAction = 'Idle';
+                this.actions[this.currentAction].play();
 
                 resolve(model);
             }, (xhr) => {
@@ -57,13 +58,13 @@ export class Player extends Entity {
                     this.model.rotation.y = Math.atan2(direction.x, direction.z);
 
                     if (this.currentAction != 'Run') {
-                        this.actions['Run'].play();
                         this.currentAction = 'Run';
+                        this.actions[this.currentAction].play();
                     }
                 } else {
                     this.model.position.copy(this.targetTile);
-                    this.actions[this.currentAction].stop();
                     this.actions[this.currentAction].fadeOut(0.5);
+                    this.actions[this.currentAction].stop();
 
                     this.currentAction = 'Idle';
                 }
@@ -71,8 +72,40 @@ export class Player extends Entity {
                 this.targetTile = null;
                 this.actions[this.currentAction].stop();
                 this.currentAction = 'Idle';
-                this.actons[this.currentAction].play();
+                this.actions[this.currentAction].play();
             }
+
+            this.chatBubble.position.x = this.model.position.x;
+            this.chatBubble.position.z = this.model.position.z;
+            console.log(this.chatBubble.position);
         }
+    }
+
+    addChatBubble(message, scene) {
+        this.chatBubble = new ChatBubble(message);
+        this.chatBubble.position.copy(this.model.position);
+        this.chatBubble.position.y += 110;
+        this.chatBubble.rotation.y = Math.PI / 4;
+        scene.add(this.chatBubble);
+
+        setTimeout(() => {
+            scene.remove(this.chatBubble);
+        }, 5000);
+    }
+}
+
+export class ChatBubble extends THREE.Mesh {
+    constructor(message) {
+        const geometry = new THREE.PlaneGeometry(100, 50);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.7,
+            map: new TextTexture(message, { fontFamily: 'Arial', fontSize: 24 }),
+        });
+
+        super(geometry, material);
+        // this.rotation.set(0, Math.PI, 0);
     }
 }

@@ -29,6 +29,7 @@ export class Game {
         this.setupEventListeners = this.setupEventListeners.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
+        this.onKeypress = this.onKeyPress.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
 
         this.setupEventListeners();
@@ -83,11 +84,12 @@ export class Game {
         this.scene.add(ambientLight);
     }
 
-    setupPlayer() {
+    async setupPlayer() {
         this.player = new Player();
-        this.player.loadModel('models/player.glb')
+        this.player.loadModel('models/playernew.glb')
             .then((loadedModel) => {
                 this.scene.add(loadedModel);
+                this.player.addChatBubble('Hello! world', this.scene);
             })
             .catch((error) => {
                 console.log('Error loading model:', error);
@@ -98,6 +100,7 @@ export class Game {
     setupEventListeners() {
         document.addEventListener('pointermove', this.onPointerMove);
         document.addEventListener('pointerdown', this.onPointerDown);
+        document.addEventListener('keypress', this.onKeyPress);
 
         window.addEventListener('resize', this.onWindowResize);
     }
@@ -169,5 +172,15 @@ export class Game {
             this.player.targetTile = targetPosition;
         }
 
+    }
+
+    onKeyPress(event) {
+        console.log(event);
+        switch(event.code) {
+            case "KeyW":
+                console.log(event);
+                // this.player.actions['Wave'].play();
+                break;
+        }
     }
 }
