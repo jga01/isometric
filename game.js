@@ -62,7 +62,7 @@ export class Game {
 
         for (let i = 0; i < this.level.width; i++) {
             for (let j = 0; j < this.level.height; j++) {
-                const geometry = new THREE.BoxGeometry(this.level.tileSize, 2, this.level.tileSize);
+                const geometry = new THREE.BoxGeometry(this.level.tileSize, 1, this.level.tileSize);
 
                 const material = new THREE.MeshLambertMaterial({ color: 0xffffff, map: map });
 
@@ -85,8 +85,13 @@ export class Game {
 
     setupPlayer() {
         this.player = new Player();
-
-        this.scene.add(this.player.model);
+        this.player.loadModel('models/player.glb')
+            .then((loadedModel) => {
+                this.scene.add(loadedModel);
+            })
+            .catch((error) => {
+                console.log('Error loading model:', error);
+            })
     }
 
 
@@ -97,8 +102,20 @@ export class Game {
         window.addEventListener('resize', this.onWindowResize);
     }
 
+    removeEventListeners() {
+        document.removeEventListener('pointermove', this.onPointerMove);
+        document.removeEventListener('pointerdown', this.onPointerDown);
+        window.removeEventListener('resize', this.onWindowResize);
+    }
+
     render() {
         requestAnimationFrame(this.render);
+
+        if (this.player.mixer) {
+            this.player.mixer.update(this.clock.getDelta());
+        }
+
+        this.player.updatePosition();
 
         this.renderer.render(this.scene, this.camera);
     }
@@ -120,9 +137,20 @@ export class Game {
         const intersects = this.raycaster.intersectObjects(this.level.map, false);
 
         if (intersects.length > 0) {
-            const intersect = intersects[0];
+            const intersectedTile = intersects[0].object;
 
-            console.log('onPointerMove', intersect.object);
+            if (this.level.highlightedTile) {
+                this.level.highlightedTile.material.color.set(0xffffff);
+            }
+
+            intersectedTile.material.color.set(0xff0000);
+
+            this.level.highlightedTile = intersectedTile;
+        } else {
+            if (this.level.highlightedTile) {
+                this.level.highlightedTile.material.color.set(0xffffff);
+                this.level.highlightedTile = null;
+            }
         }
     }
 
@@ -134,42 +162,12 @@ export class Game {
         const intersects = this.raycaster.intersectObjects(this.level.map, false);
 
         if (intersects.length > 0) {
-            const intersect = intersects[0];
+            const intersectedTile = intersects[0];
 
-            console.log('onPointerDown', intersect.object);
+            const targetPosition = new THREE.Vector3().copy(intersectedTile.point);
+
+            this.player.targetTile = targetPosition;
         }
 
     }
 }
-
-
-/*
-    if (tilePosition && objects) {
-        let rotateAxis = new THREE.Vector3(0, 1, 0);
-        let walkDirection = new THREE.Vector3();
-        let rotateQuaternion = new THREE.Quaternion();
-
-        let angle = Math.atan2(
-            tilePosition.x - objects[0].position.x,
-            tilePosition.z - objects[0].position.z);
-
-        rotateQuaternion.setFromAxisAngle(rotateAxis, angle);
-        objects[0].quaternion.rotateTowards(rotateQuaternion, 0.2);
-
-        walkDirection.subVectors(tilePosition, objects[0].position).normalize();
-
-        let moveX = walkDirection.x * walkSpeed;
-        let moveY = walkDirection.y * walkSpeed;
-        let moveZ = walkDirection.z * walkSpeed;
-
-        objects[0].position.x += moveX;
-        objects[0].position.y += moveY;
-        objects[0].position.z += moveZ;
-    }
-
-    if (mixer) {
-        mixer.update(clock.getDelta());
-    }
-
-    renderer.render(scene, camera);
-*/

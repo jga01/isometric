@@ -4,6 +4,7 @@ export class Level {
     width;
     height;
     depth;
+    selectedTile;
 
     constructor(width, height, depth, tileSize) {
         this.map = [];
